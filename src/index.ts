@@ -14,12 +14,6 @@ export class Lox {
   private hadError = false;
   private hadRuntimeError = false;
 
-  private stdout = (m: string) => this.logger.log(m);
-  private runtimeError = (error: RuntimeError) => {
-    if (error.token) this.logger.error(`${error.message}\n[line ${error!.token!.line}]`);
-    this.hadRuntimeError = true;
-  }
-
   constructor(logger: PartialConsole = console) {
     this.logger = logger;
   }
