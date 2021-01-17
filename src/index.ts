@@ -1,4 +1,4 @@
-import { RuntimeError } from './RuntimeError';
+//import { RuntimeError } from './RuntimeError';
 import { Scanner } from './Scanner';
 import { Token } from './Token';
 import { TokenEnum } from './types';

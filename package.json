@@ -14,6 +14,7 @@
     "node": ">=10"
   },
   "scripts": {
+    "ast:generate": "node dist/helpers/generateAst.js src",
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test",
