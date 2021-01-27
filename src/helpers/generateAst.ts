@@ -15,20 +15,33 @@ function generateAst(args: any) {
       Grouping: ["expression: Expr"],
       Literal: ["value: any"],
       Unary: ["operator: Token", "right: Expr"]
-    }
+    },
+    ["Token"]
+  );
+
+  defineAst(
+    out,
+    "Stmt",
+    {
+      Expression: ["expr: Expr"],
+      Print: ["expr: Expr"],
+    },
+    ["Expr"]
   );
 }
 
-function defineAst(outputDir: string, baseName: string, types: { [key: string]: string[] }) {
+function defineAst(outputDir: string, baseName: string, types: { [key: string]: string[] }, deps?: string[]) {
   const path = `${outputDir}/${baseName}.ts`;
   const typeNames = Object.keys(types);
 
   const data = ` --- GENERATED FILE ---
-  import { Token } from "./Token"
+  ${deps && defineImports(deps)}
   
   export abstract class ${baseName} {
     abstract accept<T>(visitor: Visitor<T>): T;
   }
+
+  export default ${baseName};
 
   ${defineVisitorInterface(baseName, typeNames)}
 
@@ -41,6 +54,10 @@ function defineVisitorInterface(baseName: string, types: string[]): string {
   return `export interface Visitor<R> {
     ${types.map(type => ` visit${type}${baseName}(${type.toLowerCase()}: ${type}): R;`).join("\n")}
   }`;
+}
+
+function defineImports(imports: string[]): string {
+  return imports.map(i => `import { ${i} } from "./${i}";`).join("\n");
 }
 
 function defineType(baseName: string, type: string, fields: string[]): string {

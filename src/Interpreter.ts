@@ -1,16 +1,23 @@
 import * as Expr from './Expr';
+import * as Stmt from './Stmt';
 import { Token } from './Token';
-import { TokenEnum } from './types';
-import { runtimeError } from './helpers/error';
 import { RuntimeError } from './RuntimeError';
+import { LogRuntimeError, TokenEnum } from './types';
 
-export class Interpreter implements Expr.Visitor<any> {
-  public interpret(expr: Expr.Expr): void {
+export class Interpreter implements Expr.Visitor<any>, Stmt.Visitor<void> {
+  private errorLogger: LogRuntimeError;
+  
+  constructor(errorLogger: LogRuntimeError) {
+    this.errorLogger = errorLogger;
+  }
+
+  public interpret(statements: Stmt.Stmt[]): void {
     try {
-      const value = this.evaluate(expr);
-      console.log(this.stringify(value));
+      for (const statement of statements) {
+        this.execute(statement);
+      }
     } catch (err) {
-      runtimeError(err);
+      this.errorLogger(err);
     }
   }
 
@@ -83,6 +90,15 @@ export class Interpreter implements Expr.Visitor<any> {
     return null;
   }
 
+  public visitExpressionStmt(stmt: Stmt.Expression): void {
+    this.evaluate(stmt.expr);
+  }
+
+  public visitPrintStmt(stmt: Stmt.Expression): void {
+    const value = this.evaluate(stmt.expr);
+    console.log(this.stringify(value));
+  }
+
   private checkNumberOperand(operator: Token, operand: any): void {
     if (typeof operand === "number") return;
     throw new RuntimeError(operator, "Operand must be a number.");
@@ -99,8 +115,12 @@ export class Interpreter implements Expr.Visitor<any> {
     return true;
   }
 
-  private evaluate(expr: Expr.Expr): any {
+  private evaluate(expr: Expr.Expr) {
     return expr.accept(this);
+  }
+
+  private execute(stmt: Stmt.Stmt) {
+    stmt.accept(this);
   }
 
   private isEqual(a: any, b: any): boolean {
