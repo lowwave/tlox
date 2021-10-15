@@ -1,4 +1,4 @@
-import {Token} from './Token';
+import { Token } from './Token';
 
 export abstract class Expr {
   abstract accept<T>(visitor: Visitor<T>): T;
@@ -7,11 +7,28 @@ export abstract class Expr {
 export default Expr;
 
 export interface Visitor<T> {
+  visitAssignExpr(assign: Assign): T;
   visitBinaryExpr(binary: Binary): T;
   visitGroupingExpr(grouping: Grouping): T;
   visitLiteralExpr(literal: Literal): T;
   visitLogicalExpr(logical: Logical): T;
   visitUnaryExpr(unary: Unary): T;
+  visitVariableExpr(variable: Variable): T;
+}
+
+export class Assign extends Expr {
+  readonly name: Token;
+  readonly value: Expr;
+
+  constructor(name: Token, value: Expr) {
+    super();
+    this.name = name;
+    this.value = value;
+  }
+
+  public accept<T>(visitor: Visitor<T>): T {
+    return visitor.visitAssignExpr(this);
+  }
 }
 
 export class Binary extends Expr {
@@ -86,5 +103,18 @@ export class Unary extends Expr {
 
   public accept<T>(visitor: Visitor<T>): T {
     return visitor.visitUnaryExpr(this);
+  }
+}
+
+export class Variable extends Expr {
+  readonly name: Token;
+
+  constructor(name: Token) {
+    super();
+    this.name = name;
+  }
+
+  public accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitVariableExpr(this);
   }
 }

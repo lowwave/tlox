@@ -3,10 +3,12 @@ import * as Stmt from './Stmt';
 import { Token } from './Token';
 import { RuntimeError } from './RuntimeError';
 import { LogRuntimeError, TokenEnum } from './types';
+import { Environment } from './Environment';
 
 export class Interpreter implements Expr.Visitor<any>, Stmt.Visitor<void> {
   private errorLogger: LogRuntimeError;
-  
+  private environment = new Environment();
+
   constructor(errorLogger: LogRuntimeError) {
     this.errorLogger = errorLogger;
   }
@@ -23,6 +25,18 @@ export class Interpreter implements Expr.Visitor<any>, Stmt.Visitor<void> {
 
   public visitLiteralExpr(expr: Expr.Literal): any {
     return expr.value;
+  }
+
+  public visitLogicalExpr(expr: Expr.Logical) {
+    const left = this.evaluate(expr.left);
+
+    if (expr.operator.type === TokenEnum.OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      if (!this.isTruthy(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   public visitGroupingExpr(expr: Expr.Grouping): any {
@@ -90,6 +104,17 @@ export class Interpreter implements Expr.Visitor<any>, Stmt.Visitor<void> {
     return null;
   }
 
+  public visitVariableExpr(expr: Expr.Variable): any {
+    return this.environment.get(expr.name);
+  }
+
+  public visitAssignExpr(expr: Expr.Assign): any {
+    const value = this.evaluate(expr.value);
+
+    this.environment.assign(expr.name, value);
+    return value;
+  }
+
   public visitExpressionStmt(stmt: Stmt.Expression): void {
     this.evaluate(stmt.expr);
   }
@@ -115,7 +140,7 @@ export class Interpreter implements Expr.Visitor<any>, Stmt.Visitor<void> {
     return true;
   }
 
-  private evaluate(expr: Expr.Expr) {
+  private evaluate(expr: Expr.Expr): any {
     return expr.accept(this);
   }
 

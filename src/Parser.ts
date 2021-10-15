@@ -15,11 +15,13 @@ export class Parser {
   }
 
   public parse(): Stmt.Stmt[] {
-    const statements = new Array < Stmt.Stmt > [];
+    const statements = new Array<Stmt.Stmt>();
 
     while (!this.isAtEnd()) {
       statements.push(this.statement());
     }
+
+    return statements;
   }
 
   private expression(): Expr.Expr {
